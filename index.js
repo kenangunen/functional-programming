@@ -317,3 +317,113 @@ const pipe_ =
  ** !Lodash: flowRight (compose) and flow (pipe)
  */
 //#endregion
+
+//#region //! #7 Abstraction & Commposition
+/**
+ ** Soyutlaştırmanın olması gereken temel özellikleri;
+    - Simple (Basit)
+    - Concise (Öz)
+    - Reusable (Tekrar Kullanılabilir)
+    - Independent (Bağımsız)
+    - Decomposable (Ayrıştırılabilen)
+    - Recomposable (Yeniden kapsayabilen)
+ */
+//#endregion
+
+//#region //! #8 Functors ve Categories
+
+/**
+ ** Functor Nedir?
+  Functor bir ADT(Abstract Data Types) veri tipidir. 
+
+  Bir Değer, String, Array, Object, Stream, Promise vb yapısını bozmadan içeriğini başka bir Değer, String, Array, Object, Stream, Promise Map etmeyi sağlıyorsa bu Functor veri tipindedir.
+
+  Kısaca mappable interface türemiş .map() fonksiyonuna sahip olan veri tipleri/container diyebiliriz.
+ */
+
+//***************** Array Functor *****************
+/**
+ * Array Functor veri tipidir. 
+ 
+   Çünkü map fonksiyonu vardır ve buna istediğimiz fonksiyonları vererek arka arkaya map fonksiyonu çağırabiliriz. Array yapısı ve eleman sayısı değişmez ama içeriği değişmiş olur. 
+ */
+
+//Önce square fonksiyonu ile karesini alıp sonra bu sayılara +1 ekliyoruz.
+const square = (x) => x * x;
+const addOne_ = (x) => x + 1;
+console.log([2, 4, 6].map(square).map(addOne_));
+
+//Bunun diğer bir yöntemi de map().map() yapmak yerine fonksiyonların birbirini compose etmesi yani sağlayarak tek bir map fonksiyonu içerisinde istenileni yapabilirsiniz.
+const g_ = square;
+const f_ = addOne_;
+const h = (x) => f(g(x));
+console.log([2, 4, 6].map(h));
+//***************** *****************
+
+//***************** Function Functor *****************
+/**
+ * h fonksiyonu f(g(x)) ile oluşturabildik ama acaba fonksiyonuda map() ile yapısını dönüştürmeden çalışma mantığını değiştirebilir miyiz ? Cevap Evet.
+ */
+
+Function.prototype.map = function (f) {
+  const g = this;
+  return function () {
+    return f(g.apply(this, arguments));
+  };
+};
+
+const h_ = square.map(addOne);
+console.log([2, 4, 6].map(h_));
+//***************** *****************
+
+//***************** String Functor *****************
+/**
+ * Örneğin String her bir karakterini alıp bunu bir uppercase fonksiyonundan sonradan da Sesli Harfleri 0 dönüştürme fonksiyonundan geçirebiliriz.
+ */
+
+String.prototype.map = function (f) {
+  let result = "";
+  for (let i = 0; i < this.length; i++) {
+    result += f(this[i]);
+  }
+  return result;
+};
+
+const f2 = (x) => x.toUpperCase();
+const g2 = (x) => ("EA".includes(x) ? 0 : x);
+console.log("Merhaba".map(f2).map(g2));
+//***************** *****************
+
+//***************** Promise Functor *****************
+/**
+ * Promises .map() yerine .then() metodunu kullanarak async iç içe birbirini içeren promise kaplamaları oluşturarak aynı yapıda promise döner.
+ */
+
+const waitThenCall = (msg) => {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      resolve(msg + "success");
+    }, 1000);
+  });
+};
+
+waitThenCall("Hello1_")
+  .then(
+    (data) => {
+      console.log(data);
+      return waitThenCall("Hello2_");
+    },
+    (err) => {}
+  )
+  .then((data) => {
+    console.log(data);
+    return waitThenCall("Hello3_");
+  }, undefined)
+  .then((data) => {
+    console.log(data);
+  })
+  .catch((err) => console.log(console.log(err + "X")));
+//***************** *****************
+
+
+//#endregion
