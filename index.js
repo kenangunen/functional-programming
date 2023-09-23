@@ -425,5 +425,59 @@ waitThenCall("Hello1_")
   .catch((err) => console.log(console.log(err + "X")));
 //***************** *****************
 
+//***************** Functor Yasaları *****************
+/**
+ * Identity (Birim/Kendine dönme). f(x) => x olmalı.
+ * Composition (Kapsama): f(g(x)) = map(g).map(f)
+ */
+
+//***************** *****************
+
+//***************** Type Functor (Örnek NumFunctor) *****************
+/**
+ * Argümanlar doğru tiplerde olmayabilir.
+ * Doğru tipte olsa bile içeride bir hata oluşturuyor olabilir.,
+ * İçeride kullanılacak değerler async callback elde ediliyor olabilir ve o an için bu değer hazır olmayabilir.
+ */
+
+const NumFunctor = (x) => ({
+  map: (fn) => {
+    const val = typeof x === "number" ? fn(x) : NaN;
+    return NumFunctor(val);
+  },
+  val: x,
+});
+
+const square2 = (x) => x * x;
+const addOne2 = (x) => x + 1;
+console.log(NumFunctor(2).map(square2).map(addOne2).val);
+console.log(NumFunctor([2]).map(square2).map(addOne2).val);
+//***************** *****************
+
+//***************** Maybe Functor *****************
+/**
+ * İç içe olan nesne composition kapsamlarının null ve undefined check yaptığımız birçok kodu bulunur. Bunları MayBe Functor ile giderebiliriz. Bu sayede kod içerisinde defalarca bu kontrolleri yapan kodları tekrarlamamış oluruz.
+ */
+
+// if(user && user.univercity && user.univercity.name) // kontrolü koymamıza gerek kalmaz. Bu ve bunun gibi bütün null undefined check yapısal olarak kapsayabilecek bir Functor var.
+
+const isNothing = (value) => value === null || typeof value === "undefined";
+
+const MayBeFunctor = (x) => ({
+  map: (fn) => {
+    const val = isNothing(x) ? null : fn(x);
+    return MayBeFunctor(val);
+  },
+  val: x,
+});
+
+const onur = { univercity: { name: "EGE" } };
+const ugur = { univercity: { name: "ITU" } };
+const ahmet = { univercity1: { name: "ITI" } };
+console.log(MayBeFunctor(onur).map(m=>m.univercity).map(u=>u.name).val)
+console.log(MayBeFunctor(ugur).map(m=>m.univercity).map(u=>u.name).val)
+console.log(MayBeFunctor(ahmet).map(m=>m.univercity).map(u=>u.name).val)
+
+//***************** *****************
 
 //#endregion
